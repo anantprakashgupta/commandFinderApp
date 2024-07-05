@@ -3,33 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QA Search</title>
+    <title>Command Finder</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
+            color: #333;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark-mode {
+            background-color: #333;
+            color: #f4f4f4;
         }
 
         header {
             width: 100%;
-            background-color: #fff;
+            background-color: #db490b;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             position: fixed;
             top: 0;
             z-index: 1000;
             padding: 10px 0;
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        header.dark-mode {
+            background-color: #444;
+            color: #f4f4f4;
         }
 
         h1 {
-            color: #333;
+            color: inherit;
             margin: 0;
         }
 
@@ -42,10 +55,22 @@
             font-size: 16px;
         }
 
+        #search:focus {
+            border-color: #007BFF;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
         #results {
             width: 80%;
             max-width: 800px;
             margin: 120px 0 20px; /* Adjusted margin to account for fixed header */
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #results.dark-mode {
+            background-color: #444;
+            color: #f4f4f4;
         }
 
         .question-answer {
@@ -55,6 +80,12 @@
             margin: 10px 0;
             padding: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .question-answer.dark-mode {
+            background: #444;
+            border-color: #555;
         }
 
         .question-answer .question {
@@ -62,20 +93,91 @@
             font-weight: bold;
         }
 
+        .question-answer.dark-mode .question {
+            color: #ff4c4c;
+        }
+
         .question-answer strong {
             color: #007BFF;
+        }
+
+        .question-answer.dark-mode strong {
+            color: #66b2ff;
         }
 
         .question-answer p {
             margin: 5px 0;
             line-height: 1.5;
         }
+
+        .dark-mode-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        .dark-mode-toggle label {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #e95f25;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>QA Search</h1>
-        <input type="text" id="search" placeholder="Search questions..." oninput="filterQuestions()">
+        <h2>Commands Finder</h2>
+        <label for="search" style="display:none;">Commands Finder</label>
+        <input type="text" id="search" placeholder="Commands Finders..." oninput="filterQuestions()">
+        <div class="dark-mode-toggle">
+            <label for="darkModeSwitch">Dark Mode</label>
+            <label class="switch">
+                <input type="checkbox" id="darkModeSwitch" onclick="toggleDarkMode()">
+                <span class="slider"></span>
+            </label>
+        </div>
     </header>
     <div id="results"></div>
 
@@ -98,15 +200,61 @@
                 questionDiv.innerHTML = `<p class="question"><strong>Q:</strong> ${item.question}</p><p><strong>A:</strong> ${item.answer}</p>`;
                 resultsDiv.appendChild(questionDiv);
             });
+
+            applyDarkModeToResults();
         }
 
-        function filterQuestions() {
+        async function filterQuestions() {
             const query = document.getElementById('search').value.toLowerCase();
             const filteredQuestions = questions.filter(q => q.question.toLowerCase().includes(query));
             displayQuestions(filteredQuestions);
         }
 
-        window.onload = fetchQuestions;
+        function toggleDarkMode() {
+            const isDarkMode = document.body.classList.toggle('dark-mode');
+            document.querySelector('header').classList.toggle('dark-mode');
+            document.getElementById('results').classList.toggle('dark-mode');
+            document.querySelectorAll('.question-answer').forEach(element => {
+                element.classList.toggle('dark-mode');
+            });
+
+            // Save the dark mode state in localStorage
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        function applyDarkModeToResults() {
+            if (document.body.classList.contains('dark-mode')) {
+                document.getElementById('results').classList.add('dark-mode');
+                document.querySelectorAll('.question-answer').forEach(element => {
+                    element.classList.add('dark-mode');
+                });
+            } else {
+                document.getElementById('results').classList.remove('dark-mode');
+                document.querySelectorAll('.question-answer').forEach(element => {
+                    element.classList.remove('dark-mode');
+                });
+            }
+        }
+
+        function initializeDarkMode() {
+            const darkMode = localStorage.getItem('darkMode');
+            if (darkMode === 'true') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('header').classList.add('dark-mode');
+                document.getElementById('results').classList.add('dark-mode');
+                document.querySelectorAll('.question-answer').forEach(element => {
+                    element.classList.add('dark-mode');
+                });
+
+                // Set the dark mode switch to checked
+                document.getElementById('darkModeSwitch').checked = true;
+            }
+        }
+
+        window.onload = () => {
+            fetchQuestions();
+            initializeDarkMode();
+        };
     </script>
 </body>
 </html>
