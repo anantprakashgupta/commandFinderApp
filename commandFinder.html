@@ -266,7 +266,7 @@
         let questions = [];
 
         async function fetchQuestions() {
-            const response = await fetch('/questions');
+            const response = await fetch('https://anantprakashgupta.github.io/qestitionAnswerApi/questionAnswerapi.json');
             questions = await response.json();
             displayQuestions(questions);
         }
